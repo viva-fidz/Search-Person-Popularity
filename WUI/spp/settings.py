@@ -22,9 +22,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['codefarm.pythonanywhere.com', '94.130.27.143']
 
 
 # Application definition
@@ -39,8 +39,7 @@ INSTALLED_APPS = [
     'spp',
     'mainapp',
     'userManagementApp',
-    'django_tables2',
-    'rest_framework'
+    'django_tables2'
 ]
 
 REST_FRAMEWORK = {
@@ -129,11 +128,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
+
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, "static"),
 )
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = (
+    os.path.join(BASE_DIR, "media"),
+)
+
 SECRET_KEY = '02li=igw&jbh&li)0)tw%z!v&&emijqrgz)-!w&(ze1m@#)2gl'
 
 EMAIL_USE_TLS = True
@@ -142,7 +149,4 @@ EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_HOST_USER = 'crowd.scoring@yandex.ru'
 EMAIL_HOST_PASSWORD = 'searchperson'
 
-try:
-    from spp.local_settings import *
-except ImportError as e:
-    pass
+

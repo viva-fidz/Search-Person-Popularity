@@ -1,11 +1,10 @@
 from django.db import models
 # from django.db import connection
-from rest_framework import serializers
 from django.contrib.auth.models import User
 
-""" 
+"""
 Классы, написаные с REST/Drop_and_Create_tables.sql
-создают schema 'spp' 
+создают schema 'spp'
 """
 
 
@@ -41,21 +40,3 @@ class Personpagerank(models.Model):
 
 
 
-
-
-class PersonpagerankSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Personpagerank
-        fields = ('ID', 'PersonID', 'PageID', 'Rank')
-
-
-class KeywordsSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Keywords
-        fields = ('Name', 'Persons')
-
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('url', 'username', 'email', 'is_staff')

@@ -1,47 +1,29 @@
 from django.shortcuts import render
-from .tables import DailyStatisticsTable
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse
-from .forms import ContactForm
-from django.contrib.auth.decorators import user_passes_test, login_required
+from django.contrib.auth.decorators import login_required
 import requests
-from requests.auth import HTTPBasicAuth
+from .forms import ContactForm
 
 
 def index(request):
     title = 'Главная'
-    sites = requests.get("http://94.130.27.143/sites", auth=HTTPBasicAuth('root', 'root_password')).json()
-    persons = requests.get("http://94.130.27.143/persons", auth=HTTPBasicAuth('root', 'root_password')).json()
+    sites = requests.get("http://shourick.pythonanywhere.com/sites").json()
+    persons = requests.get("http://shourick.pythonanywhere.com/persons").json()
     return render(request, 'index.html', {'title': title, 'sites': sites, 'persons': persons})
-
-@login_required
-def general(request):
-    title = 'Общая статистика'
-    persons = requests.get("http://94.130.27.143/persons", auth=HTTPBasicAuth('root', 'root_password')).json()
-    return render(request, 'general.html', {'title': title, 'persons': persons})
-
-
-@login_required
-def daily(request):
-    title = 'Ежедневная статистика'
-    sites = requests.get("http://94.130.27.143/sites", auth=HTTPBasicAuth('root', 'root_password')).json()
-    persons = requests.get("http://94.130.27.143/persons", auth=HTTPBasicAuth('root', 'root_password')).json()
-    ds_table = DailyStatisticsTable(persons)
-    return render(request, 'daily.html', {'title': title, 'sites': sites, 'persons': persons, 'ds_table': ds_table})
 
 
 def keywords(request):
     title = 'Ключевые слова'
-    persons = requests.get("http://94.130.27.143/persons", auth=HTTPBasicAuth('root', 'root_password')).json()
-    keywords = requests.get("http://94.130.27.143/keywords", auth=HTTPBasicAuth('root', 'root_password')).json()
-    return render(request, 'keywords.html', {'title': title,  'persons': persons, 'keywords': keywords})
+    persons = requests.get("http://shourick.pythonanywhere.com/persons").json()
+    keywords = requests.get("http://shourick.pythonanywhere.com/keywords").json()
+    return render(request, 'keywords.html', {'title': title, 'persons': persons, 'keywords': keywords})
 
 
 def support(request):
     title = 'Контакты'
     if request.method == 'POST':
         form = ContactForm(request.POST)
-        # Если форма заполнена корректно, сохраняем все введённые пользователем значения
         if form.is_valid():
             subject = form.cleaned_data['subject']
             sender = form.cleaned_data['sender']
@@ -55,22 +37,44 @@ def support(request):
                 send_mail(subject, message, 'crowd.scoring@yandex.ru', recipients)
             except BadHeaderError:  # Защита от уязвимости
                 return HttpResponse('Invalid header found')
-                # Переходим на другую страницу, если сообщение отправлено
             return render(request, 'email/thanks.html', {'title': 'Спасибо'})
     else:
-        # Заполняем форму
         form = ContactForm()
-        # Отправляем форму на страницу
     return render(request, 'email/support.html', {'title': title, 'form': form})
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@login_required
+def general(request):
+    title = 'Общая статистика'
+    if request.method == 'POST':
+        person_id = request.POST.get('person_id')
+        url = "http://shourick.pythonanywhere.com/rank/" + str(person_id)
+        ranks = requests.get(url).json()
+        sites = requests.get("http://shourick.pythonanywhere.com/sites").json()
+        return render(request, 'rank.html', {'title': title, 'ranks': ranks, 'sites': sites})
+    else:
+        persons = requests.get("http://shourick.pythonanywhere.com/persons").json()
+        return render(request, 'general.html', {'title': title, 'persons': persons})
+
+
 def rank(request):
-        url = request.POST.get('url')
-        print(url)
-        title = 'Общая статистика'
-        # url = "http://94.130.27.143/rank/" + str(person_id)
-        sites = requests.get("http://94.130.27.143/sites", auth=HTTPBasicAuth('root', 'root_password')).json()
-        rank = requests.get(url, auth=HTTPBasicAuth('root', 'root_password')).json()
-        # rank = requests.get("http://94.130.27.143/rank", auth=HTTPBasicAuth('root', 'root_password')).json()
-        return render(request, 'rank.html', {'title': title, 'sites': sites, 'ranks': rank})
+    return render(request, 'rank.html')
+
+
+@login_required
+def daily(request):
+    title = 'Ежедневная статистика'
+    persons = requests.get("http://shourick.pythonanywhere.com/persons").json()
+    sites = requests.get("http://shourick.pythonanywhere.com/sites").json()
+    if request.method == 'POST':
+        person_id = request.POST.get('person_id')
+        site_id = request.POST.get('site_id')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        url = "http://shourick.pythonanywhere.com/rank/" + str(person_id) + '/' + str(site_id) + '/' + \
+              str(start_date) + '&' + str(end_date)
+        rank = requests.get(url).json()
+        return render(request, 'rank_daily.html', {'title': title, 'ranks': rank})
+    else:
+        return render(request, 'daily.html', {'title': title, 'sites': sites, 'persons': persons})
+
