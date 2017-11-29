@@ -76,4 +76,4 @@ def daily(request):
         rank = requests.get(url, auth=HTTPBasicAuth('root', 'root_password')).json()
         return render(request, 'rank_daily.html', {'title': title, 'ranks': rank})
     else:
-return render(request, 'daily.html', {'title': title, 'sites': sites, 'persons': persons})
+        return render(request, 'daily.html', {'title': title, 'sites': sites, 'persons': persons})
